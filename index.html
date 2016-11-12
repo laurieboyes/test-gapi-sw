@@ -1,0 +1,67 @@
+<head>
+	<script src="https://apis.google.com/js/api.js"></script>
+	<link rel="stylesheet" href="some.css"/>
+</head>
+
+<body>
+
+	<script>
+
+		function initGoogleApi () {
+
+			const client_id = '447838384773-9n5pf96vipeuedm8ls2und2uu0ekteqt.apps.googleusercontent.com';
+			const apiKey = 'SqgxaJRRDVB4s3x9zEbkaR4B';
+			const scope = 'https://www.googleapis.com/auth/userinfo.email';
+
+			function loadAuth2 () {
+				return new Promise(resolve => {
+					gapi.load('client:auth2', resolve);
+				});
+			}
+
+			function setApiKey () {
+				gapi.client.setApiKey(apiKey);
+				return Promise.resolve()
+			}
+
+			function initApi () {
+				return gapi.auth2.init({client_id, scope}).then(() => {});
+			}
+
+			return loadAuth2()
+				.then(setApiKey)
+				.then(initApi)
+				.catch(console.error);
+		}
+
+		function signInToGoogle() {
+			return gapi.auth2.getAuthInstance().signIn();
+		}
+
+
+		function makeGoogleApiCall() {
+			return signInToGoogle()
+				.then(() => gapi.client.request({path: 'https://www.googleapis.com/oauth2/v2/userinfo'}))
+				.then(({result}) => console.log('Retrieved email address from Google API', result.email, '(skipped service worker, but why?)'))
+		}
+
+		function makeOtherApiCall() {
+			return fetch('https://pokeapi.co/api/v2/pokemon/1/')
+				.then(res => res.json())
+				.then(data => console.log(data));
+		}
+
+
+		// start
+
+		navigator.serviceWorker.register('service-worker.js', {scope: './'});
+
+		initGoogleApi();
+
+	</script>
+
+	<h1>Open console to see fetch events</h1>
+
+	<button onclick="makeOtherApiCall();">Make non-Google API call</button>
+	<button onclick="makeGoogleApiCall();">Make Google API call</button>
+</body>
